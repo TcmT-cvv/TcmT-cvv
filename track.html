@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Track Order — PrintPro</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <span class="logo">PrintPro</span>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="faq.html">FAQ</a>
+      <a href="contact.html">Contact</a>
+      <a href="track.html" class="active">Track Order</a>
+    </nav>
+    <div class="nav-right">
+      <a href="admin/dashboard.html" class="btn btn-sm btn-secondary">Admin</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-header">
+      <h1>Track Your Order</h1>
+      <p>Enter your order ID to check the current status of your print job.</p>
+    </div>
+
+    <!-- Lookup Section -->
+    <div class="card">
+      <h2>Order Lookup</h2>
+      <form id="trackForm" class="mt-16" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+        <div class="form-group" style="flex:1;min-width:240px;margin-bottom:0;">
+          <label for="orderId">Order ID</label>
+          <input type="text" id="orderId" placeholder="e.g. ORD-DEMO001" required />
+        </div>
+        <button type="submit" class="btn btn-primary" style="height:42px;">Track Order</button>
+      </form>
+    </div>
+
+    <!-- Result -->
+    <div id="trackResult" class="hidden mt-24"></div>
+
+    <!-- Submit Ticket Section -->
+    <div id="ticketSection" class="card mt-24 hidden">
+      <h2>Submit a Support Ticket</h2>
+      <p style="color:var(--text-light);" class="mb-16">Having an issue with your order? Let us know and we'll resolve it quickly.</p>
+      <div id="ticketAlert" class="hidden"></div>
+      <form id="ticketForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ticketName">Your Name</label>
+            <input type="text" id="ticketName" required placeholder="Your name" />
+          </div>
+          <div class="form-group">
+            <label for="ticketEmail">Email Address</label>
+            <input type="email" id="ticketEmail" required placeholder="you@example.com" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ticketOrderId">Order ID</label>
+          <input type="text" id="ticketOrderId" readonly />
+        </div>
+        <div class="form-group">
+          <label for="ticketIssue">Describe the Issue</label>
+          <textarea id="ticketIssue" required placeholder="Please describe the problem with your order..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Ticket</button>
+      </form>
+    </div>
+  </main>
+
+  <footer style="text-align:center;padding:32px;color:var(--text-light);font-size:0.85rem;">
+    &copy; 2026 PrintPro Document Services. All rights reserved.
+  </footer>
+
+  <script src="js/store.js"></script>
+  <script src="js/chat.js"></script>
+  <script>
+    Store.seedIfEmpty();
+
+    const statusLabels = {
+      pending: "Pending",
+      "in-progress": "In Progress",
+      completed: "Completed",
+      cancelled: "Cancelled"
+    };
+
+    const statusBadge = {
+      pending: "badge-pending",
+      "in-progress": "badge-progress",
+      completed: "badge-completed",
+      cancelled: "badge-cancelled"
+    };
+
+    document.getElementById("trackForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const orderId = document.getElementById("orderId").value.trim().toUpperCase();
+      const result = document.getElementById("trackResult");
+      const ticketSection = document.getElementById("ticketSection");
+
+      const order = Store.findOrder(orderId);
+
+      if (!order) {
+        result.className = "mt-24";
+        result.innerHTML = `
+          <div class="alert alert-error">
+            No order found with ID <strong>${escapeHtml(orderId)}</strong>. Please check your order ID and try again.
+          </div>
+          <div class="card mt-16 text-center">
+            <p>Can't find your order ID? Check your confirmation email or <a href="contact.html">contact us</a> for help.</p>
+          </div>
+        `;
+        ticketSection.classList.add("hidden");
+        return;
+      }
+
+      const date = new Date(order.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+      const badge = statusBadge[order.status] || "badge-pending";
+      const label = statusLabels[order.status] || order.status;
+
+      result.className = "mt-24";
+      result.innerHTML = `
+        <div class="card">
+          <h2>Order ${escapeHtml(order.id)}</h2>
+          <table class="mt-16">
+            <tbody>
+              <tr><td><strong>Status</strong></td><td><span class="badge ${badge}">${label}</span></td></tr>
+              <tr><td><strong>Customer</strong></td><td>${escapeHtml(order.customerName)}</td></tr>
+              <tr><td><strong>Email</strong></td><td>${escapeHtml(order.email)}</td></tr>
+              <tr><td><strong>Document Type</strong></td><td>${escapeHtml(order.documentType)}</td></tr>
+              <tr><td><strong>Quantity</strong></td><td>${order.quantity}</td></tr>
+              <tr><td><strong>Notes</strong></td><td>${escapeHtml(order.notes || "—")}</td></tr>
+              <tr><td><strong>Order Date</strong></td><td>${date}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      // Show ticket form
+      ticketSection.classList.remove("hidden");
+      document.getElementById("ticketOrderId").value = order.id;
+    });
+
+    document.getElementById("ticketForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("ticketName").value.trim();
+      const email = document.getElementById("ticketEmail").value.trim();
+      const orderId = document.getElementById("ticketOrderId").value;
+      const issue = document.getElementById("ticketIssue").value.trim();
+
+      if (!name || !email || !issue) return;
+
+      const ticket = Store.addTicket({ name, email, orderId, issue });
+
+      const alert = document.getElementById("ticketAlert");
+      alert.className = "alert alert-success";
+      alert.innerHTML = `Ticket <strong>${ticket.id}</strong> submitted successfully. We'll respond within 1 business day.`;
+      alert.classList.remove("hidden");
+
+      document.getElementById("ticketName").value = "";
+      document.getElementById("ticketEmail").value = "";
+      document.getElementById("ticketIssue").value = "";
+      setTimeout(() => alert.classList.add("hidden"), 5000);
+    });
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

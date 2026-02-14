@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAQ — PrintPro</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <span class="logo">PrintPro</span>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="faq.html" class="active">FAQ</a>
+      <a href="contact.html">Contact</a>
+      <a href="track.html">Track Order</a>
+    </nav>
+    <div class="nav-right">
+      <a href="admin/dashboard.html" class="btn btn-sm btn-secondary">Admin</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-header">
+      <h1>Frequently Asked Questions</h1>
+      <p>Find answers to common questions about our printing services.</p>
+    </div>
+
+    <div class="card">
+      <div class="faq-item">
+        <button class="faq-question">What file formats do you accept?</button>
+        <div class="faq-answer">
+          We accept PDF, AI (Adobe Illustrator), PSD (Photoshop), PNG, and JPEG files. For the best results, we recommend submitting print-ready PDF files at 300 DPI with 0.125" bleed on all sides. If you're unsure about your file, our team can review it for you at no extra charge.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">What is your standard turnaround time?</button>
+        <div class="faq-answer">
+          Standard production takes 3-5 business days from the time your order is approved. Rush orders are available with 1-2 business day production for an additional fee. Shipping time is separate and typically takes 2-4 business days depending on your location and chosen shipping method.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">Do you offer design services?</button>
+        <div class="faq-answer">
+          Yes! Our in-house design team can create custom designs for your project. Design services start at $49 for simple layouts and vary based on complexity. We also offer free design templates for common products like business cards and flyers.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">What paper options are available?</button>
+        <div class="faq-answer">
+          We carry a wide range of paper stocks including: standard 80lb text weight, 100lb gloss cover, 14pt cardstock (C2S), recycled/eco-friendly options, premium linen, and specialty stocks like kraft and translucent vellum. Each product listing shows available paper options. Contact us if you need a specific stock.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">How much does printing cost?</button>
+        <div class="faq-answer">
+          Pricing depends on the product type, quantity, paper stock, and finishing options. Here are some starting prices: Business Cards from $29.99/500, Flyers from $0.08/each, Brochures from $0.35/each, Posters from $4.99/each. For a detailed quote, please use our Contact page or start a chat.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">Can I get a proof before printing?</button>
+        <div class="faq-answer">
+          Absolutely. We provide a free digital proof for every order before it goes to press. You'll receive the proof via email and can request revisions. Your order won't print until you approve the final proof. Physical proofs are available upon request for an additional fee.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">What finishing options do you offer?</button>
+        <div class="faq-answer">
+          Our finishing options include: matte and glossy lamination, soft-touch coating, spot UV, foil stamping (gold, silver, custom colors), die-cutting, rounded corners, hole drilling, scoring, and folding. Not all finishes are available for all products — check individual product pages for details.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">Do you offer bulk discounts?</button>
+        <div class="faq-answer">
+          Yes, we offer volume discounts on most products. Generally, the more you order, the lower the per-unit cost. For very large orders (10,000+ units), please contact us directly for a custom bulk quote. We also offer ongoing discount programs for repeat customers.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">How can I cancel or modify my order?</button>
+        <div class="faq-answer">
+          Orders can be cancelled or modified before they enter production. Once an order is in production, changes are no longer possible. To cancel or modify, contact us as soon as possible with your order ID through our Contact page, chat, or by phone at (555) 123-4567. Refunds are processed within 5-7 business days.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">Do you ship internationally?</button>
+        <div class="faq-answer">
+          Currently, we ship within the United States and Canada. International shipping may be available for large orders — please contact us to discuss your needs. Domestic shipping options include USPS, UPS, and FedEx with tracking on all shipments.
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-24 text-center">
+      <h2>Still Have Questions?</h2>
+      <p class="mt-8" style="color:var(--text-light);">Our support team is ready to help you.</p>
+      <div class="mt-16" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="contact.html" class="btn btn-primary">Contact Us</a>
+      </div>
+    </div>
+  </main>
+
+  <footer style="text-align:center;padding:32px;color:var(--text-light);font-size:0.85rem;">
+    &copy; 2026 PrintPro Document Services. All rights reserved.
+  </footer>
+
+  <script src="js/store.js"></script>
+  <script src="js/chat.js"></script>
+  <script>
+    Store.seedIfEmpty();
+    // FAQ accordion
+    document.querySelectorAll(".faq-question").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const item = btn.parentElement;
+        const wasOpen = item.classList.contains("open");
+        document.querySelectorAll(".faq-item").forEach(i => i.classList.remove("open"));
+        if (!wasOpen) item.classList.add("open");
+      });
+    });
+  </script>
+</body>
+</html>
