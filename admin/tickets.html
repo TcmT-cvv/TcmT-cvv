@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support Tickets — PrintPro Admin</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <span class="logo">PrintPro Admin</span>
+    <nav>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="orders.html">Orders</a>
+      <a href="messages.html">Messages</a>
+      <a href="tickets.html" class="active">Tickets</a>
+    </nav>
+    <div class="nav-right">
+      <a href="../index.html" class="btn btn-sm btn-secondary">Back to Site</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-header">
+      <h1>Support Tickets</h1>
+      <p>Customer-reported issues linked to their orders.</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-filter="all">All</button>
+      <button class="tab-btn" data-filter="open">Open</button>
+      <button class="tab-btn" data-filter="resolved">Resolved</button>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket ID</th>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Issue</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ticketsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/store.js"></script>
+  <script>
+    Store.seedIfEmpty();
+
+    let currentFilter = "all";
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function render() {
+      const tickets = Store.getTickets();
+      const filtered = currentFilter === "all" ? tickets : tickets.filter(t => t.status === currentFilter);
+      const tbody = document.getElementById("ticketsBody");
+      tbody.innerHTML = "";
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color:var(--text-light);">No tickets found.</td></tr>';
+        return;
+      }
+
+      filtered.slice().reverse().forEach(t => {
+        const date = new Date(t.createdAt).toLocaleDateString();
+        const badge = t.status === "open"
+          ? '<span class="badge badge-pending">Open</span>'
+          : '<span class="badge badge-completed">Resolved</span>';
+
+        const issuePreview = t.issue.length > 60 ? t.issue.substring(0, 60) + "..." : t.issue;
+
+        let actions = "";
+        if (t.status === "open") {
+          actions = `<button class="btn btn-sm btn-success" onclick="resolveTicket('${t.id}')">Resolve</button>`;
+        } else {
+          actions = `<button class="btn btn-sm btn-secondary" onclick="reopenTicket('${t.id}')">Reopen</button>`;
+        }
+
+        tbody.innerHTML += `<tr>
+          <td><strong>${escapeHtml(t.id)}</strong></td>
+          <td>${escapeHtml(t.orderId || "—")}</td>
+          <td>${escapeHtml(t.name)}<br><span style="font-size:0.8rem;color:var(--text-light);">${escapeHtml(t.email)}</span></td>
+          <td title="${escapeHtml(t.issue)}">${escapeHtml(issuePreview)}</td>
+          <td>${badge}</td>
+          <td>${date}</td>
+          <td>${actions}</td>
+        </tr>`;
+      });
+    }
+
+    function resolveTicket(id) {
+      Store.updateTicketStatus(id, "resolved");
+      render();
+    }
+
+    function reopenTicket(id) {
+      Store.updateTicketStatus(id, "open");
+      render();
+    }
+
+    // Filter tabs
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentFilter = btn.dataset.filter;
+        render();
+      });
+    });
+
+    render();
+  </script>
+</body>
+</html>

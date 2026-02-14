@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Messages — PrintPro Admin</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <span class="logo">PrintPro Admin</span>
+    <nav>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="orders.html">Orders</a>
+      <a href="messages.html" class="active">Messages</a>
+      <a href="tickets.html">Tickets</a>
+    </nav>
+    <div class="nav-right">
+      <a href="../index.html" class="btn btn-sm btn-secondary">Back to Site</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-header">
+      <h1>Customer Messages</h1>
+      <p>Messages submitted through the contact form.</p>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Subject</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="messagesBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Message Detail Modal -->
+    <div class="modal-overlay" id="msgModal">
+      <div class="modal">
+        <h2 id="msgModalSubject"></h2>
+        <p style="color:var(--text-light);font-size:0.85rem;" id="msgModalMeta"></p>
+        <div class="card mt-16" style="background:var(--bg);">
+          <p id="msgModalBody"></p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" onclick="closeMsgModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/store.js"></script>
+  <script>
+    Store.seedIfEmpty();
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function render() {
+      const messages = Store.getMessages();
+      const tbody = document.getElementById("messagesBody");
+      tbody.innerHTML = "";
+
+      if (messages.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color:var(--text-light);">No messages yet.</td></tr>';
+        return;
+      }
+
+      messages.slice().reverse().forEach(m => {
+        const date = new Date(m.createdAt).toLocaleDateString();
+        const readBadge = m.read
+          ? '<span class="badge badge-completed">Read</span>'
+          : '<span class="badge badge-pending">Unread</span>';
+        const weight = m.read ? "" : ' style="font-weight:700;"';
+
+        tbody.innerHTML += `<tr${weight}>
+          <td>${escapeHtml(m.id)}</td>
+          <td>${escapeHtml(m.name)}</td>
+          <td>${escapeHtml(m.email)}</td>
+          <td>${escapeHtml(m.subject)}</td>
+          <td>${date}</td>
+          <td>${readBadge}</td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="viewMessage('${m.id}')">View</button>
+            ${!m.read ? `<button class="btn btn-sm btn-secondary" onclick="markRead('${m.id}')">Mark Read</button>` : ""}
+          </td>
+        </tr>`;
+      });
+    }
+
+    function viewMessage(id) {
+      const messages = Store.getMessages();
+      const m = messages.find(msg => msg.id === id);
+      if (!m) return;
+
+      document.getElementById("msgModalSubject").textContent = m.subject;
+      document.getElementById("msgModalMeta").textContent = `From: ${m.name} (${m.email}) — ${new Date(m.createdAt).toLocaleDateString()}`;
+      document.getElementById("msgModalBody").textContent = m.message;
+      document.getElementById("msgModal").classList.add("open");
+
+      // Auto mark as read
+      if (!m.read) {
+        Store.markMessageRead(id);
+        render();
+      }
+    }
+
+    function closeMsgModal() {
+      document.getElementById("msgModal").classList.remove("open");
+    }
+
+    function markRead(id) {
+      Store.markMessageRead(id);
+      render();
+    }
+
+    document.getElementById("msgModal").addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) closeMsgModal();
+    });
+
+    render();
+  </script>
+</body>
+</html>

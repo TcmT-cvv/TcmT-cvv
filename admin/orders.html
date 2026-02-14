@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Orders — PrintPro Admin</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <span class="logo">PrintPro Admin</span>
+    <nav>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="orders.html" class="active">Orders</a>
+      <a href="messages.html">Messages</a>
+      <a href="tickets.html">Tickets</a>
+    </nav>
+    <div class="nav-right">
+      <a href="../index.html" class="btn btn-sm btn-secondary">Back to Site</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h1>Orders</h1>
+          <p>Manage all print orders.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openNewOrder()">+ New Order</button>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-filter="all">All</button>
+      <button class="tab-btn" data-filter="pending">Pending</button>
+      <button class="tab-btn" data-filter="in-progress">In Progress</button>
+      <button class="tab-btn" data-filter="completed">Completed</button>
+      <button class="tab-btn" data-filter="cancelled">Cancelled</button>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Email</th>
+              <th>Type</th>
+              <th>Qty</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- New Order Modal -->
+  <div class="modal-overlay" id="orderModal">
+    <div class="modal">
+      <h2 id="modalTitle">New Order</h2>
+      <form id="orderForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="oName">Customer Name</label>
+            <input type="text" id="oName" required />
+          </div>
+          <div class="form-group">
+            <label for="oEmail">Email</label>
+            <input type="email" id="oEmail" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="oPhone">Phone</label>
+            <input type="tel" id="oPhone" />
+          </div>
+          <div class="form-group">
+            <label for="oType">Document Type</label>
+            <select id="oType" required>
+              <option value="">Select...</option>
+              <option>Business Cards</option>
+              <option>Flyers</option>
+              <option>Brochures</option>
+              <option>Posters</option>
+              <option>Banners</option>
+              <option>Booklets</option>
+              <option>Stationery</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="oQty">Quantity</label>
+          <input type="number" id="oQty" min="1" required />
+        </div>
+        <div class="form-group">
+          <label for="oNotes">Notes</label>
+          <textarea id="oNotes" placeholder="Paper stock, finishing, special instructions..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script>
+    Store.seedIfEmpty();
+
+    let currentFilter = "all";
+
+    const statusBadge = {
+      pending: "badge-pending",
+      "in-progress": "badge-progress",
+      completed: "badge-completed",
+      cancelled: "badge-cancelled"
+    };
+    const statusLabels = {
+      pending: "Pending",
+      "in-progress": "In Progress",
+      completed: "Completed",
+      cancelled: "Cancelled"
+    };
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function render() {
+      const orders = Store.getOrders();
+      const filtered = currentFilter === "all" ? orders : orders.filter(o => o.status === currentFilter);
+      const tbody = document.getElementById("ordersBody");
+      tbody.innerHTML = "";
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="color:var(--text-light);">No orders found.</td></tr>';
+        return;
+      }
+
+      filtered.slice().reverse().forEach(o => {
+        const date = new Date(o.createdAt).toLocaleDateString();
+        const badge = statusBadge[o.status] || "badge-pending";
+        const label = statusLabels[o.status] || o.status;
+
+        let actions = "";
+        if (o.status === "pending") {
+          actions += `<button class="btn btn-sm btn-primary" onclick="changeStatus('${o.id}','in-progress')">Start</button> `;
+          actions += `<button class="btn btn-sm btn-danger" onclick="changeStatus('${o.id}','cancelled')">Cancel</button>`;
+        } else if (o.status === "in-progress") {
+          actions += `<button class="btn btn-sm btn-success" onclick="changeStatus('${o.id}','completed')">Complete</button> `;
+          actions += `<button class="btn btn-sm btn-danger" onclick="changeStatus('${o.id}','cancelled')">Cancel</button>`;
+        } else {
+          actions = '<span style="color:var(--text-light);font-size:0.8rem;">—</span>';
+        }
+
+        tbody.innerHTML += `<tr>
+          <td><strong>${escapeHtml(o.id)}</strong></td>
+          <td>${escapeHtml(o.customerName)}</td>
+          <td>${escapeHtml(o.email)}</td>
+          <td>${escapeHtml(o.documentType)}</td>
+          <td>${o.quantity}</td>
+          <td><span class="badge ${badge}">${label}</span></td>
+          <td>${date}</td>
+          <td>${actions}</td>
+        </tr>`;
+      });
+    }
+
+    function changeStatus(orderId, status) {
+      Store.updateOrderStatus(orderId, status);
+      render();
+    }
+
+    // Filter tabs
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentFilter = btn.dataset.filter;
+        render();
+      });
+    });
+
+    // Modal
+    function openNewOrder() {
+      document.getElementById("orderModal").classList.add("open");
+      document.getElementById("orderForm").reset();
+    }
+
+    function closeModal() {
+      document.getElementById("orderModal").classList.remove("open");
+    }
+
+    document.getElementById("orderForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      Store.addOrder({
+        customerName: document.getElementById("oName").value.trim(),
+        email: document.getElementById("oEmail").value.trim(),
+        phone: document.getElementById("oPhone").value.trim(),
+        documentType: document.getElementById("oType").value,
+        quantity: parseInt(document.getElementById("oQty").value, 10),
+        notes: document.getElementById("oNotes").value.trim()
+      });
+      closeModal();
+      render();
+    });
+
+    // Close modal on overlay click
+    document.getElementById("orderModal").addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+
+    render();
+  </script>
+</body>
+</html>
