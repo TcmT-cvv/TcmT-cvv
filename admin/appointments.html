@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appointments — Nikki Nails Bar &amp; Spa</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    .sidebar { background: #2d1b2e; color: rgba(255,255,255,0.8); padding: 24px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+    .sidebar .brand { padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 16px; }
+    .sidebar .brand h2 { font-family: var(--font-display); color: #fff; font-size: 1.1rem; }
+    .sidebar .brand p { font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 2px; }
+    .sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 11px 20px; color: rgba(255,255,255,0.7); font-size: 0.875rem; font-weight: 500; transition: all 0.2s; text-decoration: none; }
+    .sidebar nav a:hover, .sidebar nav a.active { background: rgba(233,30,140,0.2); color: #fff; border-left: 3px solid var(--primary); }
+    .sidebar nav a .nav-icon { font-size: 1.1rem; min-width: 20px; }
+    .sidebar .sidebar-footer { padding: 16px 20px; margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .sidebar .sidebar-footer a { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+    .admin-content { padding: 0; }
+    .admin-header { background: var(--white); border-bottom: 1px solid var(--border); padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+    .admin-header h1 { font-family: var(--font-display); font-size: 1.4rem; }
+    .admin-body { padding: 28px 32px; }
+
+    .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: flex-end; }
+    .filters .form-group { margin-bottom: 0; min-width: 160px; }
+
+    .apt-table-row {
+      display: grid;
+      grid-template-columns: 90px 150px 1fr 130px 80px 110px 160px;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+    }
+    .apt-table-row:hover { background: var(--bg); }
+    .apt-table-header { background: var(--primary-light); font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary-dark); }
+
+    @media (max-width: 1100px) {
+      .apt-table-row { grid-template-columns: 1fr 1fr 1fr; }
+      .apt-table-header { display: none; }
+    }
+    @media (max-width: 900px) {
+      .admin-layout { grid-template-columns: 1fr; }
+      .sidebar { height: auto; position: static; }
+      .apt-table-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <h2>💅 Nikki Nails</h2>
+        <p>Staff Portal</p>
+      </div>
+      <nav>
+        <a href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+        <a href="appointments.html" class="active"><span class="nav-icon">📅</span> Appointments</a>
+        <a href="queue.html"><span class="nav-icon">👥</span> Walk-In Queue</a>
+        <a href="staff.html"><span class="nav-icon">💅</span> Staff</a>
+      </nav>
+      <div class="sidebar-footer"><a href="../index.html">← Customer View</a></div>
+    </aside>
+
+    <div class="admin-content">
+      <div class="admin-header">
+        <h1>📅 Appointments</h1>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-primary btn-sm" onclick="openNewModal()">+ New Appointment</button>
+        </div>
+      </div>
+
+      <div class="admin-body">
+        <!-- Filters -->
+        <div class="filters card">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="filter-date" onchange="renderTable()">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="filter-status" onchange="renderTable()">
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="no-show">No Show</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Technician</label>
+            <select id="filter-tech" onchange="renderTable()">
+              <option value="">All Technicians</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Search</label>
+            <input type="text" id="filter-search" placeholder="Name or phone..." oninput="renderTable()">
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="clearFilters()" style="align-self:flex-end;">Clear</button>
+        </div>
+
+        <!-- Table -->
+        <div class="card mt-16" style="padding:0;overflow:hidden;">
+          <div class="apt-table-row apt-table-header">
+            <div>Time</div><div>Customer</div><div>Service</div><div>Technician</div><div>Price</div><div>Status</div><div>Actions</div>
+          </div>
+          <div id="apt-table-body"></div>
+        </div>
+
+        <div id="apt-count" style="font-size:0.82rem;color:var(--text-light);margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New/Edit Appointment Modal -->
+  <div class="modal-overlay" id="apt-modal">
+    <div class="modal">
+      <h2 id="modal-title">New Appointment</h2>
+      <input type="hidden" id="modal-apt-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Customer Name *</label>
+          <input type="text" id="m-name" placeholder="Full Name">
+        </div>
+        <div class="form-group">
+          <label>Phone *</label>
+          <input type="tel" id="m-phone" placeholder="(555) 000-0000">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="m-email" placeholder="Optional">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Service *</label>
+          <select id="m-service" onchange="updateModalPrice()"></select>
+        </div>
+        <div class="form-group">
+          <label>Technician</label>
+          <select id="m-tech"></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date *</label>
+          <input type="date" id="m-date">
+        </div>
+        <div class="form-group">
+          <label>Time *</label>
+          <input type="time" id="m-time" min="09:00" max="19:00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="m-status">
+          <option value="confirmed">Confirmed</option>
+          <option value="pending">Pending</option>
+          <option value="in-progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="no-show">No Show</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="m-notes" style="min-height:72px;" placeholder="Special requests, preferences..."></textarea>
+      </div>
+      <div id="modal-error" class="alert alert-error hidden"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveAppointment()">Save Appointment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Update Modal -->
+  <div class="modal-overlay" id="status-modal">
+    <div class="modal" style="max-width:380px;">
+      <h2>Update Status</h2>
+      <p id="status-modal-name" style="margin-bottom:16px;color:var(--text-light);"></p>
+      <input type="hidden" id="status-apt-id">
+      <div class="form-group">
+        <label>New Status</label>
+        <select id="new-status">
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="in-progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="no-show">No Show</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeStatusModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmStatusUpdate()">Update</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script>
+    function escapeHtml(str) {
+      const d = document.createElement('div');
+      d.appendChild(document.createTextNode(str || ''));
+      return d.innerHTML;
+    }
+    function formatTime(t) {
+      if (!t) return '';
+      const [h, m] = t.split(':');
+      const hr = parseInt(h);
+      return `${hr > 12 ? hr - 12 : hr}:${m} ${hr >= 12 ? 'PM' : 'AM'}`;
+    }
+    function statusBadge(status) {
+      const map = { 'confirmed':'badge-confirmed','pending':'badge-pending','in-progress':'badge-progress','completed':'badge-completed','cancelled':'badge-cancelled','no-show':'badge-noshow' };
+      return `<span class="badge ${map[status]||'badge-pending'}">${status}</span>`;
+    }
+
+    // ---- Filters ----
+    function setupFilters() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('filter-date').value = today;
+      const techSel = document.getElementById('filter-tech');
+      Store.getStaff().forEach(s => {
+        const o = document.createElement('option');
+        o.value = s.id; o.textContent = s.name;
+        techSel.appendChild(o);
+      });
+    }
+
+    function clearFilters() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('filter-date').value = today;
+      document.getElementById('filter-status').value = '';
+      document.getElementById('filter-tech').value = '';
+      document.getElementById('filter-search').value = '';
+      renderTable();
+    }
+
+    // ---- Render Table ----
+    function renderTable() {
+      let apts = Store.getAppointments();
+      const dateF = document.getElementById('filter-date').value;
+      const statusF = document.getElementById('filter-status').value;
+      const techF = document.getElementById('filter-tech').value;
+      const searchF = document.getElementById('filter-search').value.toLowerCase();
+
+      if (dateF) apts = apts.filter(a => a.date === dateF);
+      if (statusF) apts = apts.filter(a => a.status === statusF);
+      if (techF) apts = apts.filter(a => a.technicianId === techF);
+      if (searchF) apts = apts.filter(a => a.customerName.toLowerCase().includes(searchF) || a.phone.includes(searchF));
+
+      apts.sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        return a.time.localeCompare(b.time);
+      });
+
+      const body = document.getElementById('apt-table-body');
+      if (apts.length === 0) {
+        body.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><p>No appointments found.</p></div>';
+      } else {
+        body.innerHTML = apts.map(a => `
+          <div class="apt-table-row">
+            <div><strong>${formatTime(a.time)}</strong><br><small style="color:var(--text-light);font-size:0.75rem;">${a.date}</small></div>
+            <div><strong>${escapeHtml(a.customerName)}</strong><br><small style="color:var(--text-light);">${escapeHtml(a.phone)}</small></div>
+            <div>${escapeHtml(a.service)}<br><small style="color:var(--text-light);">${a.duration} min</small></div>
+            <div>${escapeHtml(a.technicianName)}</div>
+            <div><strong>$${a.price}</strong></div>
+            <div>${statusBadge(a.status)}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="btn btn-sm btn-ghost" onclick="openStatusModal('${a.id}','${escapeHtml(a.customerName)}','${a.status}')">Status</button>
+              <button class="btn btn-sm btn-secondary" onclick="openEditModal('${a.id}')">Edit</button>
+            </div>
+          </div>
+        `).join('');
+      }
+      document.getElementById('apt-count').textContent = `Showing ${apts.length} appointment${apts.length !== 1 ? 's' : ''}`;
+    }
+
+    // ---- New Appointment Modal ----
+    function populateModalSelects() {
+      const svcSel = document.getElementById('m-service');
+      svcSel.innerHTML = Store.getServices().map(s => `<option value="${s.id}" data-price="${s.price}" data-duration="${s.duration}" data-category="${escapeHtml(s.category)}">${escapeHtml(s.category)} — ${escapeHtml(s.name)} ($${s.price})</option>`).join('');
+
+      const techSel = document.getElementById('m-tech');
+      techSel.innerHTML = '<option value="any">Any Available</option>' +
+        Store.getStaff().map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+    }
+
+    function updateModalPrice() { /* price shown in select option */ }
+
+    function openNewModal() {
+      document.getElementById('modal-title').textContent = 'New Appointment';
+      document.getElementById('modal-apt-id').value = '';
+      document.getElementById('m-name').value = '';
+      document.getElementById('m-phone').value = '';
+      document.getElementById('m-email').value = '';
+      document.getElementById('m-notes').value = '';
+      document.getElementById('m-status').value = 'confirmed';
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('m-date').value = today;
+      document.getElementById('m-time').value = '10:00';
+      document.getElementById('modal-error').classList.add('hidden');
+      document.getElementById('apt-modal').classList.add('open');
+    }
+
+    function openEditModal(id) {
+      const a = Store.findAppointment(id);
+      if (!a) return;
+      document.getElementById('modal-title').textContent = 'Edit Appointment';
+      document.getElementById('modal-apt-id').value = a.id;
+      document.getElementById('m-name').value = a.customerName;
+      document.getElementById('m-phone').value = a.phone;
+      document.getElementById('m-email').value = a.email || '';
+      document.getElementById('m-notes').value = a.notes || '';
+      document.getElementById('m-status').value = a.status;
+      document.getElementById('m-date').value = a.date;
+      document.getElementById('m-time').value = a.time;
+      // Select service
+      const svcSel = document.getElementById('m-service');
+      for (let i = 0; i < svcSel.options.length; i++) {
+        if (svcSel.options[i].value === a.serviceId) { svcSel.selectedIndex = i; break; }
+      }
+      // Select tech
+      const techSel = document.getElementById('m-tech');
+      for (let i = 0; i < techSel.options.length; i++) {
+        if (techSel.options[i].value === a.technicianId) { techSel.selectedIndex = i; break; }
+      }
+      document.getElementById('modal-error').classList.add('hidden');
+      document.getElementById('apt-modal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('apt-modal').classList.remove('open');
+    }
+
+    function saveAppointment() {
+      const name = document.getElementById('m-name').value.trim();
+      const phone = document.getElementById('m-phone').value.trim();
+      const date = document.getElementById('m-date').value;
+      const time = document.getElementById('m-time').value;
+      const errDiv = document.getElementById('modal-error');
+
+      if (!name || !phone || !date || !time) {
+        errDiv.textContent = 'Please fill in all required fields.';
+        errDiv.classList.remove('hidden');
+        return;
+      }
+
+      const svcSel = document.getElementById('m-service');
+      const selOpt = svcSel.options[svcSel.selectedIndex];
+      const svc = Store.getServiceById(selOpt.value);
+      const techSel = document.getElementById('m-tech');
+      const techOpt = techSel.options[techSel.selectedIndex];
+      const staff = Store.getStaff().find(s => s.id === techOpt.value);
+
+      const aptData = {
+        customerName: name, phone,
+        email: document.getElementById('m-email').value.trim(),
+        service: svc ? svc.name : selOpt.text,
+        serviceId: selOpt.value,
+        category: svc ? svc.category : '',
+        duration: svc ? svc.duration : 30,
+        price: svc ? svc.price : 0,
+        technicianId: techOpt.value,
+        technicianName: techOpt.value === 'any' ? 'Any Available' : (staff ? staff.name : techOpt.text),
+        date, time,
+        notes: document.getElementById('m-notes').value.trim(),
+        status: document.getElementById('m-status').value
+      };
+
+      const aptId = document.getElementById('modal-apt-id').value;
+      if (aptId) {
+        Store.updateAppointment(aptId, aptData);
+      } else {
+        Store.addAppointment(aptData);
+      }
+
+      closeModal();
+      renderTable();
+    }
+
+    // ---- Status Modal ----
+    function openStatusModal(id, name, currentStatus) {
+      document.getElementById('status-apt-id').value = id;
+      document.getElementById('status-modal-name').textContent = name;
+      document.getElementById('new-status').value = currentStatus;
+      document.getElementById('status-modal').classList.add('open');
+    }
+
+    function closeStatusModal() { document.getElementById('status-modal').classList.remove('open'); }
+
+    function confirmStatusUpdate() {
+      const id = document.getElementById('status-apt-id').value;
+      const status = document.getElementById('new-status').value;
+      Store.updateAppointment(id, { status });
+      closeStatusModal();
+      renderTable();
+    }
+
+    // Close modals on overlay click
+    document.getElementById('apt-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+    document.getElementById('status-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeStatusModal(); });
+
+    Store.seedIfEmpty();
+    setupFilters();
+    populateModalSelects();
+    renderTable();
+  </script>
+</body>
+</html>

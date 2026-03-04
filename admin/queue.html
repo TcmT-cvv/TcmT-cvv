@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Walk-In Queue — Nikki Nails Bar &amp; Spa</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    .sidebar { background: #2d1b2e; color: rgba(255,255,255,0.8); padding: 24px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+    .sidebar .brand { padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 16px; }
+    .sidebar .brand h2 { font-family: var(--font-display); color: #fff; font-size: 1.1rem; }
+    .sidebar .brand p { font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 2px; }
+    .sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 11px 20px; color: rgba(255,255,255,0.7); font-size: 0.875rem; font-weight: 500; transition: all 0.2s; text-decoration: none; }
+    .sidebar nav a:hover, .sidebar nav a.active { background: rgba(233,30,140,0.2); color: #fff; border-left: 3px solid var(--primary); }
+    .sidebar nav a .nav-icon { font-size: 1.1rem; min-width: 20px; }
+    .sidebar .sidebar-footer { padding: 16px 20px; margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .sidebar .sidebar-footer a { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+    .admin-content { padding: 0; }
+    .admin-header { background: var(--white); border-bottom: 1px solid var(--border); padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+    .admin-header h1 { font-family: var(--font-display); font-size: 1.4rem; }
+    .admin-body { padding: 28px 32px; }
+
+    .queue-layout { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
+
+    .queue-item-card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: 48px 1fr auto;
+      gap: 16px;
+      align-items: center;
+      transition: box-shadow 0.2s;
+    }
+    .queue-item-card:hover { box-shadow: var(--shadow); }
+    .queue-item-card.in-progress { border-color: var(--primary); background: var(--primary-light); }
+    .queue-item-card.completed { opacity: 0.6; }
+
+    .qpos {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--primary); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; font-weight: 700; font-family: var(--font-display);
+    }
+    .qpos.inprog { background: var(--accent); }
+
+    .qinfo h4 { font-weight: 700; font-size: 1rem; margin-bottom: 2px; }
+    .qinfo .qmeta { font-size: 0.82rem; color: var(--text-light); display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+    .qinfo .qmeta span { display: flex; align-items: center; gap: 4px; }
+
+    .qactions { display: flex; gap: 6px; flex-direction: column; min-width: 120px; }
+
+    .timer-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.75rem; font-weight: 600;
+      background: var(--warning-light); color: var(--warning);
+      padding: 2px 8px; border-radius: 10px;
+    }
+    .timer-badge.long { background: var(--danger-light); color: var(--danger); }
+
+    .today-history { margin-top: 16px; }
+    .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+    .hist-item:last-child { border-bottom: none; }
+
+    @media (max-width: 1100px) { .queue-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; } .sidebar { height: auto; position: static; } }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <h2>💅 Nikki Nails</h2>
+        <p>Staff Portal</p>
+      </div>
+      <nav>
+        <a href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+        <a href="appointments.html"><span class="nav-icon">📅</span> Appointments</a>
+        <a href="queue.html" class="active"><span class="nav-icon">👥</span> Walk-In Queue</a>
+        <a href="staff.html"><span class="nav-icon">💅</span> Staff</a>
+      </nav>
+      <div class="sidebar-footer"><a href="../index.html">← Customer View</a></div>
+    </aside>
+
+    <div class="admin-content">
+      <div class="admin-header">
+        <h1>👥 Walk-In Queue</h1>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span id="queue-live-badge" class="chip">Loading...</span>
+          <button class="btn btn-ghost btn-sm" onclick="renderQueue()">🔄 Refresh</button>
+          <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Walk-In</button>
+        </div>
+      </div>
+
+      <div class="admin-body">
+        <div class="queue-layout">
+          <!-- Active Queue -->
+          <div>
+            <div id="in-progress-section" class="mb-24"></div>
+
+            <div class="section-header mb-16">
+              <h2>Waiting</h2>
+              <span id="wait-count" class="chip">0 waiting</span>
+            </div>
+            <div id="queue-list"></div>
+          </div>
+
+          <!-- Right Panel: Stats + History -->
+          <div>
+            <div class="card" style="position:sticky;top:84px;">
+              <h3 style="font-family:var(--font-display);margin-bottom:16px;">Today's Summary</h3>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+                <div class="stat-card card" style="padding:16px;">
+                  <div class="stat-value" id="s-total" style="font-size:1.5rem;">0</div>
+                  <div class="stat-label">Walk-Ins Today</div>
+                </div>
+                <div class="stat-card card" style="padding:16px;">
+                  <div class="stat-value" id="s-done" style="font-size:1.5rem;">0</div>
+                  <div class="stat-label">Completed</div>
+                </div>
+              </div>
+
+              <h4 style="margin-bottom:12px;font-family:var(--font-display);">Today's History</h4>
+              <div id="today-history" class="today-history"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Walk-In Modal -->
+  <div class="modal-overlay" id="add-modal">
+    <div class="modal">
+      <h2>Add Walk-In Customer</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" id="wi-name" placeholder="Full Name">
+        </div>
+        <div class="form-group">
+          <label>Phone *</label>
+          <input type="tel" id="wi-phone" placeholder="(555) 000-0000">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Service *</label>
+        <select id="wi-service"></select>
+      </div>
+      <div class="form-group">
+        <label>Technician</label>
+        <select id="wi-tech">
+          <option value="any">Any Available</option>
+        </select>
+      </div>
+      <div id="wi-error" class="alert alert-error hidden"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeAddModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveWalkin()">Add to Queue</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script>
+    function escapeHtml(str) {
+      const d = document.createElement('div');
+      d.appendChild(document.createTextNode(str || ''));
+      return d.innerHTML;
+    }
+
+    function formatTime(iso) {
+      if (!iso) return '';
+      return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
+
+    function minutesAgo(iso) {
+      return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    }
+
+    function statusBadge(status) {
+      const map = { 'waiting':'badge-waiting','in-progress':'badge-progress','completed':'badge-completed','cancelled':'badge-cancelled' };
+      return `<span class="badge ${map[status]||'badge-pending'}">${status}</span>`;
+    }
+
+    function renderQueue() {
+      const walkins = Store.getWalkins();
+      const active = Store.getActiveQueue();
+      const inProgress = walkins.filter(w => w.status === 'in-progress');
+      const todayAll = Store.getTodayWalkins();
+      const completed = todayAll.filter(w => w.status === 'completed');
+
+      // Badge
+      document.getElementById('queue-live-badge').textContent =
+        active.length === 0 ? '✨ Empty queue' : `${active.length} waiting`;
+      document.getElementById('wait-count').textContent = `${active.length} waiting`;
+
+      // Stats
+      document.getElementById('s-total').textContent = todayAll.length;
+      document.getElementById('s-done').textContent = completed.length;
+
+      // In-Progress
+      const ipSection = document.getElementById('in-progress-section');
+      if (inProgress.length === 0) {
+        ipSection.innerHTML = '';
+      } else {
+        ipSection.innerHTML = `<div class="section-header mb-16"><h2 style="color:var(--primary);">💅 Currently In Service</h2></div>` +
+          inProgress.map(w => renderWalkinCard(w, true)).join('');
+      }
+
+      // Waiting queue
+      const qList = document.getElementById('queue-list');
+      if (active.length === 0) {
+        qList.innerHTML = '<div class="empty-state"><div class="empty-icon">✨</div><p>No one waiting right now!</p></div>';
+      } else {
+        qList.innerHTML = active.map(w => renderWalkinCard(w, false)).join('');
+      }
+
+      // History
+      const hist = document.getElementById('today-history');
+      const histItems = todayAll.filter(w => w.status === 'completed' || w.status === 'cancelled').reverse();
+      if (histItems.length === 0) {
+        hist.innerHTML = '<p style="font-size:0.82rem;color:var(--text-light);">No completed walk-ins yet today.</p>';
+      } else {
+        hist.innerHTML = histItems.map(w => `
+          <div class="hist-item">
+            <div>
+              <strong style="font-size:0.875rem;">${escapeHtml(w.customerName)}</strong>
+              <p style="font-size:0.78rem;color:var(--text-light);">${escapeHtml(w.service)}</p>
+            </div>
+            <div style="text-align:right;">
+              ${statusBadge(w.status)}
+              <p style="font-size:0.75rem;color:var(--text-light);margin-top:2px;">${formatTime(w.updatedAt || w.checkInTime)}</p>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderWalkinCard(w, inProgress) {
+      const waited = minutesAgo(w.checkInTime);
+      const isLong = waited > 30;
+      return `
+        <div class="queue-item-card ${inProgress ? 'in-progress' : ''}">
+          <div class="qpos ${inProgress ? 'inprog' : ''}">${inProgress ? '💅' : w.position}</div>
+          <div class="qinfo">
+            <h4>${escapeHtml(w.customerName)}</h4>
+            <div class="qmeta">
+              <span>📞 ${escapeHtml(w.phone)}</span>
+              <span>💅 ${escapeHtml(w.service)}</span>
+              <span>👤 ${escapeHtml(w.technicianName)}</span>
+            </div>
+            <div style="margin-top:6px;display:flex;gap:8px;align-items:center;">
+              <span class="timer-badge ${isLong ? 'long' : ''}">⏱ ${waited} min waiting</span>
+              <span style="font-size:0.75rem;color:var(--text-light);">Checked in ${formatTime(w.checkInTime)}</span>
+            </div>
+          </div>
+          <div class="qactions">
+            ${!inProgress ? `<button class="btn btn-sm btn-primary" onclick="startService('${w.id}')">▶ Start</button>` : ''}
+            ${inProgress ? `<button class="btn btn-sm btn-success" onclick="completeService('${w.id}')">✓ Done</button>` : ''}
+            <button class="btn btn-sm btn-ghost" onclick="cancelWalkin('${w.id}')">✕ Remove</button>
+          </div>
+        </div>`;
+    }
+
+    function startService(id) {
+      // Find next available technician if 'any'
+      const w = Store.getWalkins().find(x => x.id === id);
+      if (!w) return;
+      let techName = w.technicianName;
+      if (w.technicianId === 'any') {
+        const staff = Store.getStaff().filter(s => s.status === 'available');
+        if (staff.length > 0) techName = staff[0].name;
+      }
+      Store.updateWalkin(id, { status: 'in-progress', technicianName: techName });
+      Store.recalcQueuePositions();
+      renderQueue();
+    }
+
+    function completeService(id) {
+      const w = Store.getWalkins().find(x => x.id === id);
+      if (!w) return;
+      Store.updateWalkin(id, { status: 'completed' });
+      renderQueue();
+    }
+
+    function cancelWalkin(id) {
+      if (!confirm('Remove this customer from the queue?')) return;
+      Store.updateWalkin(id, { status: 'cancelled' });
+      Store.recalcQueuePositions();
+      renderQueue();
+    }
+
+    // ---- Add Modal ----
+    function openAddModal() {
+      document.getElementById('wi-name').value = '';
+      document.getElementById('wi-phone').value = '';
+      document.getElementById('wi-error').classList.add('hidden');
+
+      const svcSel = document.getElementById('wi-service');
+      svcSel.innerHTML = Store.getServices()
+        .filter(s => !['Nail Art', 'Spa Treatments'].includes(s.category))
+        .map(s => `<option value="${s.id}">${escapeHtml(s.category)} — ${escapeHtml(s.name)} ($${s.price})</option>`).join('');
+
+      const techSel = document.getElementById('wi-tech');
+      techSel.innerHTML = '<option value="any">Any Available</option>' +
+        Store.getStaff().filter(s => s.status !== 'off').map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+
+      document.getElementById('add-modal').classList.add('open');
+    }
+
+    function closeAddModal() { document.getElementById('add-modal').classList.remove('open'); }
+
+    function saveWalkin() {
+      const name = document.getElementById('wi-name').value.trim();
+      const phone = document.getElementById('wi-phone').value.trim();
+      const svcSel = document.getElementById('wi-service');
+      const techSel = document.getElementById('wi-tech');
+      const errDiv = document.getElementById('wi-error');
+
+      if (!name || !phone) {
+        errDiv.textContent = 'Name and phone are required.';
+        errDiv.classList.remove('hidden');
+        return;
+      }
+
+      const svc = Store.getServiceById(svcSel.value);
+      const staff = Store.getStaff().find(s => s.id === techSel.value);
+
+      Store.addWalkin({
+        customerName: name, phone,
+        service: svc ? svc.name : '',
+        serviceId: svcSel.value,
+        category: svc ? svc.category : '',
+        price: svc ? svc.price : 0,
+        duration: svc ? svc.duration : 30,
+        technicianId: techSel.value,
+        technicianName: techSel.value === 'any' ? 'Any Available' : (staff ? staff.name : 'Any Available'),
+        estimatedWait: Store.getActiveQueue().length * 20
+      });
+
+      closeAddModal();
+      renderQueue();
+    }
+
+    document.getElementById('add-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAddModal(); });
+
+    Store.seedIfEmpty();
+    renderQueue();
+    setInterval(renderQueue, 30000);
+  </script>
+</body>
+</html>

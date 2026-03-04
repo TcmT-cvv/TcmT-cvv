@@ -1,184 +1,246 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard — PrintPro</title>
-  <link rel="stylesheet" href="../css/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receptionist Dashboard — Nikki Nails Bar &amp; Spa</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    .sidebar {
+      background: #2d1b2e;
+      color: rgba(255,255,255,0.8);
+      padding: 24px 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .sidebar .brand { padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 16px; }
+    .sidebar .brand h2 { font-family: var(--font-display); color: #fff; font-size: 1.1rem; }
+    .sidebar .brand p { font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 2px; }
+    .sidebar nav a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 20px; color: rgba(255,255,255,0.7);
+      font-size: 0.875rem; font-weight: 500;
+      transition: all 0.2s; text-decoration: none;
+    }
+    .sidebar nav a:hover, .sidebar nav a.active {
+      background: rgba(233,30,140,0.2); color: #fff;
+      border-left: 3px solid var(--primary);
+    }
+    .sidebar nav a .nav-icon { font-size: 1.1rem; min-width: 20px; }
+    .sidebar .sidebar-footer { padding: 16px 20px; margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .sidebar .sidebar-footer a { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+    .admin-content { padding: 0; }
+    .admin-header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .admin-header h1 { font-family: var(--font-display); font-size: 1.4rem; }
+    .admin-header .date-badge { font-size: 0.875rem; color: var(--text-light); }
+    .admin-body { padding: 28px 32px; }
+
+    .apt-row { display: grid; grid-template-columns: 80px 1fr 1fr 1fr 100px 120px; gap: 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+    .apt-row:last-child { border-bottom: none; }
+    .apt-row:hover { background: var(--bg); }
+    .apt-row-header { font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-light); background: var(--primary-light); }
+    .apt-time { font-weight: 700; color: var(--primary-dark); }
+    .apt-customer h4 { font-weight: 600; font-size: 0.9rem; }
+    .apt-customer p { font-size: 0.78rem; color: var(--text-light); }
+
+    .activity-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); margin-top: 6px; flex-shrink: 0; }
+    .activity-item .act-time { font-size: 0.75rem; color: var(--text-light); }
+
+    @media (max-width: 900px) {
+      .admin-layout { grid-template-columns: 1fr; }
+      .sidebar { height: auto; position: static; }
+      .apt-row { grid-template-columns: 1fr 1fr; }
+      .apt-row-header { display: none; }
+    }
+  </style>
 </head>
 <body>
-  <header class="navbar">
-    <span class="logo">PrintPro Admin</span>
-    <nav>
-      <a href="dashboard.html" class="active">Dashboard</a>
-      <a href="orders.html">Orders</a>
-      <a href="messages.html">Messages</a>
-      <a href="tickets.html">Tickets</a>
-    </nav>
-    <div class="nav-right">
-      <a href="../index.html" class="btn btn-sm btn-secondary">Back to Site</a>
-    </div>
-  </header>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <h2>💅 Nikki Nails</h2>
+        <p>Staff Portal</p>
+      </div>
+      <nav>
+        <a href="dashboard.html" class="active"><span class="nav-icon">🏠</span> Dashboard</a>
+        <a href="appointments.html"><span class="nav-icon">📅</span> Appointments</a>
+        <a href="queue.html"><span class="nav-icon">👥</span> Walk-In Queue</a>
+        <a href="staff.html"><span class="nav-icon">💅</span> Staff</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../index.html">← Customer View</a>
+      </div>
+    </aside>
 
-  <main class="container">
-    <div class="page-header">
-      <h1>Dashboard</h1>
-      <p>Overview of your printing service operations.</p>
-    </div>
-
-    <!-- Stats -->
-    <div class="grid grid-4" id="statsGrid">
-      <div class="card stat-card">
-        <div class="stat-value" id="statOrders">0</div>
-        <div class="stat-label">Total Orders</div>
-      </div>
-      <div class="card stat-card">
-        <div class="stat-value" id="statPending">0</div>
-        <div class="stat-label">Pending Orders</div>
-      </div>
-      <div class="card stat-card">
-        <div class="stat-value" id="statMessages">0</div>
-        <div class="stat-label">Unread Messages</div>
-      </div>
-      <div class="card stat-card">
-        <div class="stat-value" id="statTickets">0</div>
-        <div class="stat-label">Open Tickets</div>
-      </div>
-    </div>
-
-    <!-- Recent Orders -->
-    <div class="card mt-24">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <h2>Recent Orders</h2>
-        <a href="orders.html" class="btn btn-sm btn-secondary">View All</a>
-      </div>
-      <div class="table-wrap mt-16">
-        <table>
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Customer</th>
-              <th>Type</th>
-              <th>Qty</th>
-              <th>Status</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody id="recentOrdersBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Recent Messages & Tickets -->
-    <div class="grid grid-2 mt-24">
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <h2>Recent Messages</h2>
-          <a href="messages.html" class="btn btn-sm btn-secondary">View All</a>
+    <!-- Main Content -->
+    <div class="admin-content">
+      <div class="admin-header">
+        <div>
+          <h1>Good morning, Receptionist! 👋</h1>
+          <p class="date-badge" id="today-date"></p>
         </div>
-        <div id="recentMessages" class="mt-16"></div>
-      </div>
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <h2>Open Tickets</h2>
-          <a href="tickets.html" class="btn btn-sm btn-secondary">View All</a>
+        <div style="display:flex;gap:10px;">
+          <a href="../book.html" class="btn btn-ghost btn-sm">+ New Appointment</a>
+          <a href="../checkin.html" class="btn btn-primary btn-sm">+ Walk-In Check-In</a>
         </div>
-        <div id="recentTickets" class="mt-16"></div>
+      </div>
+
+      <div class="admin-body">
+        <!-- Stats -->
+        <div class="grid grid-4 mb-24" id="stats-grid">
+          <div class="card stat-card"><div class="stat-icon">📅</div><div class="stat-value" id="stat-apts">—</div><div class="stat-label">Today's Appointments</div></div>
+          <div class="card stat-card"><div class="stat-icon">👥</div><div class="stat-value" id="stat-queue">—</div><div class="stat-label">Active Queue</div></div>
+          <div class="card stat-card"><div class="stat-icon">💅</div><div class="stat-value" id="stat-inprog">—</div><div class="stat-label">Currently In Service</div></div>
+          <div class="card stat-card"><div class="stat-icon">💰</div><div class="stat-value" id="stat-rev">—</div><div class="stat-label">Today's Revenue</div></div>
+        </div>
+
+        <div class="grid grid-2">
+          <!-- Today's Appointments -->
+          <div class="card" style="grid-column: 1 / -1;">
+            <div class="section-header">
+              <h2>Today's Appointments</h2>
+              <a href="appointments.html" class="btn btn-ghost btn-sm">Manage All →</a>
+            </div>
+            <div class="apt-row apt-row-header">
+              <div>Time</div><div>Customer</div><div>Service</div><div>Technician</div><div>Price</div><div>Status</div>
+            </div>
+            <div id="today-apts"></div>
+          </div>
+
+          <!-- Walk-In Queue -->
+          <div class="card">
+            <div class="section-header">
+              <h2>Walk-In Queue</h2>
+              <a href="queue.html" class="btn btn-ghost btn-sm">Manage →</a>
+            </div>
+            <div id="queue-preview"></div>
+          </div>
+
+          <!-- Staff Status -->
+          <div class="card">
+            <div class="section-header">
+              <h2>Staff Status</h2>
+              <a href="staff.html" class="btn btn-ghost btn-sm">Manage →</a>
+            </div>
+            <div id="staff-status"></div>
+          </div>
+        </div>
       </div>
     </div>
-  </main>
+  </div>
 
   <script src="../js/store.js"></script>
   <script>
-    Store.seedIfEmpty();
-
-    const statusBadge = {
-      pending: "badge-pending",
-      "in-progress": "badge-progress",
-      completed: "badge-completed",
-      cancelled: "badge-cancelled"
-    };
-
-    const statusLabels = {
-      pending: "Pending",
-      "in-progress": "In Progress",
-      completed: "Completed",
-      cancelled: "Cancelled"
-    };
-
     function escapeHtml(str) {
-      const div = document.createElement("div");
-      div.textContent = str;
-      return div.innerHTML;
+      const d = document.createElement('div');
+      d.appendChild(document.createTextNode(str || ''));
+      return d.innerHTML;
     }
 
-    function render() {
-      const orders = Store.getOrders();
-      const messages = Store.getMessages();
-      const tickets = Store.getTickets();
+    function formatTime(t) {
+      if (!t) return '';
+      const [h, m] = t.split(':');
+      const hr = parseInt(h);
+      return `${hr > 12 ? hr - 12 : hr}:${m} ${hr >= 12 ? 'PM' : 'AM'}`;
+    }
+
+    function statusBadge(status) {
+      const map = {
+        'confirmed': 'badge-confirmed', 'pending': 'badge-pending',
+        'in-progress': 'badge-progress', 'completed': 'badge-completed',
+        'cancelled': 'badge-cancelled', 'no-show': 'badge-noshow',
+        'waiting': 'badge-waiting'
+      };
+      return `<span class="badge ${map[status] || 'badge-pending'}">${status}</span>`;
+    }
+
+    function renderDashboard() {
+      // Date
+      const now = new Date();
+      document.getElementById('today-date').textContent = now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 
       // Stats
-      document.getElementById("statOrders").textContent = orders.length;
-      document.getElementById("statPending").textContent = orders.filter(o => o.status === "pending").length;
-      document.getElementById("statMessages").textContent = messages.filter(m => !m.read).length;
-      document.getElementById("statTickets").textContent = tickets.filter(t => t.status === "open").length;
+      const stats = Store.getTodayStats();
+      document.getElementById('stat-apts').textContent = stats.totalAppointments;
+      document.getElementById('stat-queue').textContent = stats.activeQueue;
+      document.getElementById('stat-inprog').textContent = stats.inProgress;
+      document.getElementById('stat-rev').textContent = '$' + stats.revenue;
 
-      // Recent Orders (last 5)
-      const tbody = document.getElementById("recentOrdersBody");
-      tbody.innerHTML = "";
-      orders.slice(-5).reverse().forEach(o => {
-        const date = new Date(o.createdAt).toLocaleDateString();
-        const badge = statusBadge[o.status] || "badge-pending";
-        const label = statusLabels[o.status] || o.status;
-        tbody.innerHTML += `<tr>
-          <td><strong>${escapeHtml(o.id)}</strong></td>
-          <td>${escapeHtml(o.customerName)}</td>
-          <td>${escapeHtml(o.documentType)}</td>
-          <td>${o.quantity}</td>
-          <td><span class="badge ${badge}">${label}</span></td>
-          <td>${date}</td>
-        </tr>`;
-      });
-      if (orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="color:var(--text-light);">No orders yet.</td></tr>';
-      }
-
-      // Recent Messages (last 3)
-      const msgEl = document.getElementById("recentMessages");
-      msgEl.innerHTML = "";
-      messages.slice(-3).reverse().forEach(m => {
-        const date = new Date(m.createdAt).toLocaleDateString();
-        const readDot = m.read ? "" : ' style="font-weight:700;"';
-        msgEl.innerHTML += `<div class="ticket">
-          <div class="ticket-info">
-            <h4${readDot}>${escapeHtml(m.subject)}</h4>
-            <p>${escapeHtml(m.name)} &middot; ${date}</p>
+      // Today's Appointments
+      const today = now.toISOString().split('T')[0];
+      const apts = Store.getAppointmentsByDate(today).sort((a, b) => a.time.localeCompare(b.time));
+      const aptsEl = document.getElementById('today-apts');
+      if (apts.length === 0) {
+        aptsEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><p>No appointments scheduled for today.</p></div>';
+      } else {
+        aptsEl.innerHTML = apts.map(a => `
+          <div class="apt-row">
+            <div class="apt-time">${formatTime(a.time)}</div>
+            <div class="apt-customer"><h4>${escapeHtml(a.customerName)}</h4><p>${escapeHtml(a.phone)}</p></div>
+            <div>${escapeHtml(a.service)}</div>
+            <div>${escapeHtml(a.technicianName)}</div>
+            <div>$${a.price}</div>
+            <div>${statusBadge(a.status)}</div>
           </div>
-        </div>`;
-      });
-      if (messages.length === 0) {
-        msgEl.innerHTML = '<p style="color:var(--text-light);">No messages yet.</p>';
+        `).join('');
       }
 
-      // Recent Tickets (open only, last 3)
-      const ticketEl = document.getElementById("recentTickets");
-      ticketEl.innerHTML = "";
-      tickets.filter(t => t.status === "open").slice(-3).reverse().forEach(t => {
-        const date = new Date(t.createdAt).toLocaleDateString();
-        ticketEl.innerHTML += `<div class="ticket">
-          <div class="ticket-info">
-            <h4>${escapeHtml(t.id)} — ${escapeHtml(t.orderId || "General")}</h4>
-            <p>${escapeHtml(t.name)} &middot; ${date}</p>
+      // Walk-In Queue
+      const queue = Store.getActiveQueue();
+      const queueEl = document.getElementById('queue-preview');
+      if (queue.length === 0) {
+        queueEl.innerHTML = '<div class="empty-state"><div class="empty-icon">✨</div><p>Queue is empty!</p></div>';
+      } else {
+        queueEl.innerHTML = queue.map(w => `
+          <div class="queue-card">
+            <div class="queue-position">${w.position}</div>
+            <div class="queue-info">
+              <h4>${escapeHtml(w.customerName)}</h4>
+              <p>${escapeHtml(w.service)} · ${escapeHtml(w.technicianName)}</p>
+            </div>
+            <div>${statusBadge(w.status)}</div>
           </div>
-          <span class="badge badge-pending">Open</span>
-        </div>`;
-      });
-      if (tickets.filter(t => t.status === "open").length === 0) {
-        ticketEl.innerHTML = '<p style="color:var(--text-light);">No open tickets.</p>';
+        `).join('');
       }
+
+      // Staff Status
+      const staff = Store.getStaff();
+      const staffEl = document.getElementById('staff-status');
+      staffEl.innerHTML = staff.map(s => `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+          <div style="font-size:1.5rem;">${s.emoji}</div>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:0.9rem;">${escapeHtml(s.name)}</div>
+            <div style="font-size:0.78rem;color:var(--text-light);">${escapeHtml(s.specialty)}</div>
+          </div>
+          <span class="badge badge-${s.status}">${s.status}</span>
+        </div>
+      `).join('');
     }
 
-    render();
+    Store.seedIfEmpty();
+    renderDashboard();
+    setInterval(renderDashboard, 30000);
   </script>
 </body>
 </html>

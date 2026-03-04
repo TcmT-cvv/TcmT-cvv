@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Services &amp; Pricing — Nikki Nails Bar &amp; Spa</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .category-nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .cat-btn {
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      color: var(--text-light);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: all 0.2s;
+    }
+    .cat-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .cat-btn.active { background: var(--primary); color: var(--white); border-color: var(--primary); }
+
+    .category-section { margin-bottom: 40px; scroll-margin-top: 90px; }
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--primary-light);
+    }
+    .category-icon { font-size: 1.8rem; }
+    .category-header h2 { font-family: var(--font-display); font-size: 1.5rem; }
+
+    .add-on-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: var(--accent);
+      font-weight: 600;
+      background: var(--accent-light);
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: 8px;
+    }
+
+    .policy-card { background: linear-gradient(135deg, var(--primary-light), var(--accent-light)); border: 1px solid var(--border); }
+    .policy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 12px; }
+    .policy-item h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+    .policy-item p { font-size: 0.82rem; color: var(--text-light); }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">💅 Nikki Nails <span>Bar &amp; Spa</span></div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="services.html" class="active">Services</a>
+      <a href="book.html">Book</a>
+      <a href="checkin.html">Walk-In</a>
+    </nav>
+    <div class="nav-right">
+      <a href="admin/dashboard.html" class="btn btn-ghost btn-sm">🔐 Staff</a>
+      <a href="book.html" class="btn btn-primary btn-sm">Book Now</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-header">
+      <h1>Services &amp; Pricing</h1>
+      <p>Treat yourself to our full range of nail and beauty services. All prices include standard nail polish unless noted.</p>
+    </div>
+
+    <!-- Category Filter -->
+    <nav class="category-nav" aria-label="Service categories">
+      <button class="cat-btn active" onclick="filterCategory('all', this)">All Services</button>
+      <button class="cat-btn" onclick="filterCategory('Manicure', this)">💅 Manicure</button>
+      <button class="cat-btn" onclick="filterCategory('Pedicure', this)">🦶 Pedicure</button>
+      <button class="cat-btn" onclick="filterCategory('Nail Art', this)">🎨 Nail Art</button>
+      <button class="cat-btn" onclick="filterCategory('Spa Treatments', this)">🧖 Spa Treatments</button>
+      <button class="cat-btn" onclick="filterCategory('Waxing', this)">🌙 Waxing</button>
+      <button class="cat-btn" onclick="filterCategory('Combo Packages', this)">🎁 Combo Packages</button>
+    </nav>
+
+    <!-- Service Sections -->
+    <div id="services-container"></div>
+
+    <!-- Policies -->
+    <div class="card policy-card mt-32">
+      <h2>📋 Salon Policies</h2>
+      <div class="policy-grid">
+        <div class="policy-item">
+          <h4>⏰ Cancellation</h4>
+          <p>Please cancel or reschedule at least 24 hours in advance. Late cancellations may incur a $15 fee.</p>
+        </div>
+        <div class="policy-item">
+          <h4>🕐 Late Arrivals</h4>
+          <p>We hold appointments for 10 minutes. After that, your slot may be given to a walk-in client.</p>
+        </div>
+        <div class="policy-item">
+          <h4>💳 Payment</h4>
+          <p>We accept cash, credit/debit cards, Venmo, and Zelle. 18% gratuity is customary and appreciated.</p>
+        </div>
+        <div class="policy-item">
+          <h4>🔁 Repairs</h4>
+          <p>Free nail repairs within 5 days of service. Damage from misuse or trauma not covered.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-24">
+      <p class="text-light mb-16">Ready to book your service?</p>
+      <a href="book.html" class="btn btn-primary btn-lg">📅 Book an Appointment</a>
+      <a href="checkin.html" class="btn btn-secondary btn-lg" style="margin-left:12px;">🚶 Walk-In Check-In</a>
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div>
+        <h4>💅 Nikki Nails Bar &amp; Spa</h4>
+        <p>Your neighborhood luxury nail salon.</p>
+      </div>
+      <div>
+        <h4>Hours</h4>
+        <p>Mon–Fri: 9 AM – 7 PM</p>
+        <p>Sat: 9 AM – 6 PM | Sun: 11 AM – 5 PM</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p>📞 (555) 265-5464</p>
+        <p>📍 123 Beauty Lane, Suite 4</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Nikki Nails Bar &amp; Spa</span>
+      <span>Made with 💖</span>
+    </div>
+  </footer>
+
+  <script src="js/store.js"></script>
+  <script>
+    const CATEGORY_ICONS = {
+      'Manicure': '💅',
+      'Pedicure': '🦶',
+      'Nail Art': '🎨',
+      'Spa Treatments': '🧖',
+      'Waxing': '🌙',
+      'Combo Packages': '🎁'
+    };
+
+    let currentFilter = 'all';
+
+    function renderServices() {
+      const services = Store.getServices();
+      const categories = Store.getServiceCategories();
+      const container = document.getElementById('services-container');
+      container.innerHTML = '';
+
+      categories.forEach(cat => {
+        const catServices = services.filter(s => s.category === cat);
+        const section = document.createElement('section');
+        section.className = 'category-section';
+        section.dataset.category = cat;
+        if (currentFilter !== 'all' && currentFilter !== cat) {
+          section.classList.add('hidden');
+        }
+
+        const isAddOn = cat === 'Nail Art' || cat === 'Spa Treatments';
+
+        section.innerHTML = `
+          <div class="category-header">
+            <span class="category-icon">${CATEGORY_ICONS[cat] || '✨'}</span>
+            <h2>${escapeHtml(cat)}${isAddOn ? '<span class="add-on-note">Add-on services</span>' : ''}</h2>
+          </div>
+          <div class="card">
+            ${catServices.map(svc => `
+              <div class="menu-item">
+                <div class="menu-item-info">
+                  <h4>${escapeHtml(svc.name)}</h4>
+                  <p>${escapeHtml(svc.description)}</p>
+                </div>
+                <div class="menu-item-price">
+                  <div class="price">$${svc.price}</div>
+                  <div class="duration">${svc.duration} min</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        container.appendChild(section);
+      });
+    }
+
+    function filterCategory(cat, btn) {
+      currentFilter = cat;
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.category-section').forEach(sec => {
+        if (cat === 'all' || sec.dataset.category === cat) {
+          sec.classList.remove('hidden');
+        } else {
+          sec.classList.add('hidden');
+        }
+      });
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
+
+    Store.seedIfEmpty();
+    renderServices();
+  </script>
+</body>
+</html>

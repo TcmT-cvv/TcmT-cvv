@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Walk-In Check-In — Nikki Nails Bar &amp; Spa</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .checkin-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .queue-live {
+      position: sticky;
+      top: 84px;
+    }
+
+    .queue-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .wait-badge {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .empty-queue {
+      text-align: center;
+      padding: 32px;
+      color: var(--text-light);
+    }
+    .empty-queue .eq-icon { font-size: 2.5rem; margin-bottom: 8px; }
+
+    .confirmation-box {
+      background: var(--success-light);
+      border: 1.5px solid var(--success);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      text-align: center;
+    }
+    .confirmation-box .conf-icon { font-size: 4rem; margin-bottom: 12px; }
+    .confirmation-box h2 { font-family: var(--font-display); color: var(--success); margin-bottom: 8px; }
+    .queue-number { font-size: 4rem; font-weight: 700; color: var(--primary); line-height: 1; margin: 16px 0 8px; }
+
+    .service-quick-select { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 8px; }
+    .svc-quick {
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--white);
+    }
+    .svc-quick:hover { border-color: var(--primary); }
+    .svc-quick.selected { border-color: var(--primary); background: var(--primary-light); }
+    .svc-quick h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+    .svc-quick p { font-size: 0.75rem; color: var(--text-light); }
+    .svc-quick .sqprice { font-size: 0.9rem; font-weight: 700; color: var(--primary); }
+
+    @media (max-width: 900px) {
+      .checkin-layout { grid-template-columns: 1fr; }
+      .queue-live { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">💅 Nikki Nails <span>Bar &amp; Spa</span></div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="services.html">Services</a>
+      <a href="book.html">Book</a>
+      <a href="checkin.html" class="active">Walk-In</a>
+    </nav>
+    <div class="nav-right">
+      <a href="admin/dashboard.html" class="btn btn-ghost btn-sm">🔐 Staff</a>
+      <a href="book.html" class="btn btn-primary btn-sm">Book Instead</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-header">
+      <h1>Walk-In Check-In</h1>
+      <p>No appointment? No problem! Check in and we'll add you to our queue.</p>
+    </div>
+
+    <div class="checkin-layout">
+      <!-- Left: Form -->
+      <div>
+        <!-- Check-in Form -->
+        <div id="checkin-form" class="card">
+          <h2 style="font-family:var(--font-display);margin-bottom:20px;">👋 Welcome! Let's get you checked in.</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wi-name">Your Name *</label>
+              <input type="text" id="wi-name" placeholder="First &amp; Last Name" required>
+            </div>
+            <div class="form-group">
+              <label for="wi-phone">Phone Number *</label>
+              <input type="tel" id="wi-phone" placeholder="(555) 000-0000" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Select a Service *</label>
+            <div id="svc-cat-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
+            <div class="service-quick-select" id="svc-quick-grid"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="wi-tech">Technician Preference</label>
+            <select id="wi-tech">
+              <option value="any">Any Available Technician</option>
+            </select>
+          </div>
+
+          <div id="wait-estimate" class="alert alert-info hidden">
+            ⏱️ <span id="wait-text">Estimated wait: calculating...</span>
+          </div>
+
+          <div id="wi-error" class="alert alert-error hidden"></div>
+
+          <div class="mt-16">
+            <button class="btn btn-primary btn-lg" onclick="submitCheckin()">🚶 Join the Queue</button>
+          </div>
+        </div>
+
+        <!-- Confirmation -->
+        <div id="checkin-confirm" class="hidden">
+          <div class="confirmation-box">
+            <div class="conf-icon">🎉</div>
+            <h2>You're in the Queue!</h2>
+            <p>Your queue number is</p>
+            <div class="queue-number" id="queue-number">#1</div>
+            <p id="conf-wait-text" style="color:var(--text-light);font-size:0.9rem;"></p>
+            <div class="card mt-24" style="text-align:left;" id="conf-walkin-details"></div>
+            <p style="margin-top:16px;font-size:0.82rem;color:var(--text-light);">We'll call your name when we're ready. Please stay nearby!</p>
+            <div class="mt-16" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+              <button class="btn btn-ghost" onclick="resetForm()">Check In Another</button>
+              <a href="index.html" class="btn btn-primary">Back to Home</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Live Queue -->
+      <div class="queue-live">
+        <div class="card">
+          <div class="queue-header">
+            <h3 style="font-family:var(--font-display);">Live Queue</h3>
+            <button class="btn btn-ghost btn-sm" onclick="refreshQueue()">🔄 Refresh</button>
+          </div>
+          <div id="live-queue-count" class="wait-badge mb-16">Loading...</div>
+          <div id="live-queue"></div>
+        </div>
+
+        <div class="card mt-16" style="text-align:center;">
+          <div style="font-size:2rem;margin-bottom:8px;">📅</div>
+          <h4>Want a guaranteed spot?</h4>
+          <p style="font-size:0.82rem;color:var(--text-light);margin:8px 0 14px;">Book an appointment online and skip the wait!</p>
+          <a href="book.html" class="btn btn-primary btn-sm">Book Appointment</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/store.js"></script>
+  <script>
+    function escapeHtml(str) {
+      const d = document.createElement('div');
+      d.appendChild(document.createTextNode(str || ''));
+      return d.innerHTML;
+    }
+
+    let selectedServiceId = null;
+    let currentCatFilter = 'all';
+
+    // ---- Render service options ----
+    function renderServiceOptions() {
+      const services = Store.getServices().filter(s => !['Nail Art', 'Spa Treatments'].includes(s.category));
+      const categories = [...new Set(services.map(s => s.category))];
+
+      // Category chips
+      const chips = document.getElementById('svc-cat-chips');
+      chips.innerHTML = `<button class="cat-chip active" style="padding:4px 12px;border-radius:14px;border:1.5px solid var(--border);background:var(--primary);color:#fff;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:var(--font-body);" onclick="filterWiCat('all',this)">All</button>` +
+        categories.map(c => `<button class="cat-chip" style="padding:4px 12px;border-radius:14px;border:1.5px solid var(--border);background:var(--white);color:var(--text-light);font-size:0.78rem;font-weight:500;cursor:pointer;font-family:var(--font-body);" onclick="filterWiCat('${escapeHtml(c)}',this)">${escapeHtml(c)}</button>`).join('');
+
+      renderServiceGrid(services);
+    }
+
+    function renderServiceGrid(services) {
+      const grid = document.getElementById('svc-quick-grid');
+      grid.innerHTML = services.map(svc => `
+        <div class="svc-quick ${selectedServiceId === svc.id ? 'selected' : ''}" onclick="selectWiService('${svc.id}')">
+          <h4>${escapeHtml(svc.name)}</h4>
+          <p>${escapeHtml(svc.description)}</p>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;">
+            <span class="sqprice">$${svc.price}</span>
+            <span style="font-size:0.72rem;color:var(--text-light);">${svc.duration} min</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterWiCat(cat, btn) {
+      currentCatFilter = cat;
+      document.querySelectorAll('#svc-cat-chips button').forEach(b => {
+        b.style.background = 'var(--white)';
+        b.style.color = 'var(--text-light)';
+        b.style.borderColor = 'var(--border)';
+      });
+      btn.style.background = 'var(--primary)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = 'var(--primary)';
+
+      const all = Store.getServices().filter(s => !['Nail Art', 'Spa Treatments'].includes(s.category));
+      const filtered = cat === 'all' ? all : all.filter(s => s.category === cat);
+      renderServiceGrid(filtered);
+    }
+
+    function selectWiService(id) {
+      selectedServiceId = id;
+      const svc = Store.getServiceById(id);
+      renderServiceGrid(
+        currentCatFilter === 'all'
+          ? Store.getServices().filter(s => !['Nail Art', 'Spa Treatments'].includes(s.category))
+          : Store.getServices().filter(s => s.category === currentCatFilter)
+      );
+      updateWaitEstimate();
+    }
+
+    // ---- Staff dropdown ----
+    function loadStaffSelect() {
+      const sel = document.getElementById('wi-tech');
+      const staff = Store.getStaff().filter(s => s.status !== 'off');
+      sel.innerHTML = '<option value="any">Any Available Technician</option>' +
+        staff.map(s => `<option value="${s.id}">${escapeHtml(s.name)} — ${escapeHtml(s.specialty)}</option>`).join('');
+      sel.addEventListener('change', updateWaitEstimate);
+    }
+
+    function updateWaitEstimate() {
+      if (!selectedServiceId) return;
+      const queue = Store.getActiveQueue();
+      const waitDiv = document.getElementById('wait-estimate');
+      const waitText = document.getElementById('wait-text');
+      const base = queue.length * 20; // rough 20min avg per person ahead
+      const estimate = base < 5 ? 'less than 5 minutes' : `approximately ${base}–${base + 15} minutes`;
+      waitText.textContent = `Current queue: ${queue.length} ahead of you. Estimated wait: ${estimate}.`;
+      waitDiv.classList.remove('hidden');
+    }
+
+    // ---- Submit ----
+    function submitCheckin() {
+      const name = document.getElementById('wi-name').value.trim();
+      const phone = document.getElementById('wi-phone').value.trim();
+      const techId = document.getElementById('wi-tech').value;
+      const errDiv = document.getElementById('wi-error');
+
+      if (!name || !phone) {
+        errDiv.textContent = 'Please enter your name and phone number.';
+        errDiv.classList.remove('hidden');
+        return;
+      }
+      if (!selectedServiceId) {
+        errDiv.textContent = 'Please select a service.';
+        errDiv.classList.remove('hidden');
+        return;
+      }
+      errDiv.classList.add('hidden');
+
+      const svc = Store.getServiceById(selectedServiceId);
+      const staff = Store.getStaff().find(s => s.id === techId);
+      const queue = Store.getActiveQueue();
+      const estimatedWait = queue.length * 20;
+
+      const walkin = Store.addWalkin({
+        customerName: name,
+        phone,
+        service: svc.name,
+        serviceId: selectedServiceId,
+        category: svc.category,
+        price: svc.price,
+        duration: svc.duration,
+        technicianId: techId,
+        technicianName: techId === 'any' ? 'Any Available' : (staff ? staff.name : 'Any Available'),
+        estimatedWait
+      });
+
+      // Show confirmation
+      document.getElementById('checkin-form').classList.add('hidden');
+      document.getElementById('checkin-confirm').classList.remove('hidden');
+      document.getElementById('queue-number').textContent = '#' + walkin.position;
+      document.getElementById('conf-wait-text').textContent =
+        walkin.position === 1 ? 'You\'re next! We\'ll be right with you.' :
+        `Estimated wait: ~${estimatedWait} minutes`;
+
+      document.getElementById('conf-walkin-details').innerHTML = `
+        <ul class="info-list">
+          <li><strong>Name</strong><span>${escapeHtml(name)}</span></li>
+          <li><strong>Service</strong><span>${escapeHtml(svc.name)}</span></li>
+          <li><strong>Technician</strong><span>${escapeHtml(walkin.technicianName)}</span></li>
+          <li><strong>Duration</strong><span>${svc.duration} min</span></li>
+          <li><strong>Price</strong><span>$${svc.price}</span></li>
+          <li><strong>Check-In</strong><span>${new Date().toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'})}</span></li>
+        </ul>
+      `;
+
+      refreshQueue();
+    }
+
+    function resetForm() {
+      document.getElementById('checkin-form').classList.remove('hidden');
+      document.getElementById('checkin-confirm').classList.add('hidden');
+      document.getElementById('wi-name').value = '';
+      document.getElementById('wi-phone').value = '';
+      selectedServiceId = null;
+      renderServiceOptions();
+      document.getElementById('wait-estimate').classList.add('hidden');
+      document.getElementById('wi-error').classList.add('hidden');
+    }
+
+    // ---- Live Queue ----
+    function refreshQueue() {
+      const queue = Store.getActiveQueue();
+      const container = document.getElementById('live-queue');
+      const countEl = document.getElementById('live-queue-count');
+
+      countEl.textContent = queue.length === 0 ? 'No wait — walk right in!' :
+        `${queue.length} ${queue.length === 1 ? 'person' : 'people'} waiting`;
+
+      if (queue.length === 0) {
+        container.innerHTML = `<div class="empty-queue"><div class="eq-icon">✨</div><p>The queue is empty right now.<br>You'll be seen immediately!</p></div>`;
+        return;
+      }
+
+      container.innerHTML = queue.map(w => {
+        const checkedIn = new Date(w.checkInTime);
+        const waited = Math.floor((Date.now() - checkedIn.getTime()) / 60000);
+        return `
+          <div class="queue-card">
+            <div class="queue-position">${w.position}</div>
+            <div class="queue-info">
+              <h4>${escapeHtml(w.customerName)}</h4>
+              <p>${escapeHtml(w.service)} · Waited ${waited} min</p>
+            </div>
+            <span class="badge badge-waiting">Waiting</span>
+          </div>`;
+      }).join('');
+    }
+
+    // ---- Init ----
+    Store.seedIfEmpty();
+    renderServiceOptions();
+    loadStaffSelect();
+    refreshQueue();
+    setInterval(refreshQueue, 30000); // auto-refresh every 30s
+  </script>
+</body>
+</html>
